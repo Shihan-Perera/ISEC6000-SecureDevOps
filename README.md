@@ -1,62 +1,173 @@
-# ISEC6000 Secure DevOps - Assignment 1
+![Saleor Platform](https://user-images.githubusercontent.com/249912/71523206-4e45f800-28c8-11ea-84ba-345a9bfc998a.png)
 
-## Project Name: ISEC6000-SecureDevOps
+<div align="center">
+  <h1>Saleor Platform</h1>
+</div>
 
-## Description
+<div align="center">
+  <p>Run all Saleor services from one repository.</p>
+</div>
 
-This project is part of the ISEC6000 Secure DevOps course assignment. The main objective of this project is to set up, deploy, and secure a microservices-based e-commerce application using industry-standard tools like Docker, Kubernetes, and Google Kubernetes Engine (GKE). This README file outlines the steps taken to complete the project and provides insights into the configurations and security measures implemented.
+<div align="center">
+  <a href="https://saleor.io/">🏠 Website</a>
+  <span> • </span>
+  <a href="https://docs.saleor.io/docs/3.x/">📚 Docs</a>
+  <span> • </span>
+  <a href="https://saleor.io/blog/">📰 Blog</a>
+  <span> • </span>
+  <a href="https://twitter.com/getsaleor">🐦 Twitter</a>
+</div>
 
-## Project Tasks
+<div align="center">
+  <a href="https://githubbox.com/saleor/saleor-platform">🔎 Explore Code</a>
+</div>
 
-### Task 1: Set Up Initial Infrastructure
+## About
 
-1. **Task 1.1: Create a Kubernetes Cluster**
-   - Provisioned a Kubernetes cluster on Google Kubernetes Engine (GKE).
-   - Configured the cluster with an appropriate name, region (asia-south1), and node pool settings.
-   - Verified the cluster creation and ensured it's ready for deployment.
+### What is Saleor Platform?
 
-2. **Task 1.2: Configure `kubectl`**
-   - Installed and authenticated `kubectl` on the local machine.
-   - Configured `kubectl` to manage the Kubernetes cluster.
-   - Verified connectivity and control over the Kubernetes cluster.
+Saleor Platform is the easiest way to start local development with all the major Saleor services:
+- [Core GraphQL API](https://github.com/saleor/saleor)
+- [Dashboard](https://github.com/saleor/saleor-dashboard)
+- Mailpit (Test email interface)
+- Jaeger (APM)
+- The necessary databases, cache, etc.
 
-3. **Task 1.3: GitHub Repository Setup**
-   - Created a GitHub repository named `ISEC6000-SecureDevOps`.
-   - Initialized the repository with a README file.
-   - Set up SSH keys for secure communication with GitHub.
-   - Pushed the local project files to the GitHub repository.
+*Keep in mind this repository is for local development only and is not meant to be deployed in any production environment! If you're not a developer and just want to try out Saleor you can check our [live demo](https://demo.saleor.io/).*
 
-### Task 2: Microservices Architecture and Deployment
+## Requirements
+1. [Docker](https://docs.docker.com/install/)
 
-- Deployed the Saleor e-commerce platform using Docker Compose within the Kubernetes environment.
-- Customized the Docker Compose configuration to fit the project requirements.
-- Verified the deployment by accessing the Saleor Dashboard and ensuring all services are running smoothly.
+## How to clone the repository?
 
-### Task 3: Implementing Security Measures
+To clone the repository, run the following command
 
-- Applied security best practices to Docker containers, such as running containers as non-root users and using secure base images.
-- Performed vulnerability scanning on the container images using Trivy and documented the findings.
+```
+git clone https://github.com/saleor/saleor-platform.git
+```
 
-### Task 4: Architecture Visualization
+## How to run it?
 
-- Created an architecture diagram that illustrates the interactions between the Saleor API, Dashboard, PostgreSQL, Redis, and other services.
-- Annotated the diagram to highlight security measures and network policies.
+1. We are using shared folders to enable live code reloading. Without this, Docker Compose will not start:
+    - Windows/MacOS: Add the cloned `saleor-platform` directory to Docker shared directories (Preferences -> Resources -> File sharing).
+    - Windows/MacOS: Make sure that in Docker preferences you have dedicated at least 5 GB of memory (Preferences -> Resources -> Advanced).
+    - Linux: No action is required, sharing is already enabled and memory for the Docker engine is not limited.
 
-### Task 5: Project Demonstration
+2. Go to the cloned directory:
+```shell
+cd saleor-platform
+```
 
-- Conducted a project demonstration, showcasing the deployment process, security configurations, and overall functionality of the e-commerce platform.
+3. Build the application:
+```shell
+docker compose build
+```
 
-## Prerequisites
+4. Apply Django migrations:
+```shell
+docker compose run --rm api python3 manage.py migrate
+```
 
-- Docker
-- Kubernetes
-- Google Cloud SDK
-- `kubectl` installed and configured
-- Git and GitHub account
+5. Populate the database with example data and create the admin user:
+```shell
+docker compose run --rm api python3 manage.py populatedb --createsuperuser
+```
+*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
 
-## Installation
+6. Run the application:
+```shell
+docker compose up
+```
 
-1. Clone the repository:
-   ```bash
-   git clone git@github.com:Shihan-Perera/ISEC6000-SecureDevOps.git
-   cd ISEC6000-SecureDevOps
+## Where is the application running?
+- Saleor Core (API) - http://localhost:8000
+- Saleor Dashboard - http://localhost:9000
+- Jaeger UI (APM) - http://localhost:16686
+- Mailpit (Test email interface) - http://localhost:8025
+
+# Troubleshooting
+
+- [How to solve issues with lack of available space or build errors after an update](#how-to-solve-issues-with-lack-of-available-space-or-build-errors-after-an-update)
+- [How to run application parts?](#how-to-run-application-parts)
+
+## How to solve issues with lack of available space or build errors after an update
+
+Most of the time both issues can be solved by cleaning up space taken by old containers. After that, we build again whole platform. 
+
+
+1. Make sure docker stack is not running
+```shell
+docker compose stop
+```
+
+2. Remove existing volumes
+
+**Warning!** Proceeding will remove also your database container! If you need existing data, please remove only services that cause problems! https://docs.docker.com/compose/reference/rm/
+```shell
+docker compose rm
+```
+
+3. Build fresh containers 
+```shell
+docker compose build
+```
+
+4. Now you can run a fresh environment using commands from `How to run it?` section. Done!
+
+### Still no available space
+
+If you are getting issues with lack of available space, consider pruning your docker cache:
+
+**Warning!** This will remove:
+  - all stopped containers
+  - all networks not used by at least one container
+  - all dangling images
+  - all dangling build cache 
+  
+  More info: https://docs.docker.com/engine/reference/commandline/system_prune/
+  
+<details><summary>I've been warned</summary>
+<p>
+
+```shell
+docker system prune
+```
+
+</p>
+</details>
+
+### Issues with migrations after changing the versions - resetting the database
+
+Please submit an issue ticket if you spot issues with database migrations during the version update. 
+
+When testing developer releases or making local changes, you might end up in a state where you would like to reset the database completely. Since its state is persisted in the mounted volume, you'll need to use a dedicated command.
+
+**Warning!** This command will remove all data already stored in the database.
+
+<details><summary>I've been warned</summary>
+<p>
+
+```shell
+docker compose down --volumes db
+```
+
+</p>
+</details>
+   
+## How to run application parts?
+  - `docker compose up api worker` for backend services only
+  - `docker compose up` for backend and frontend services
+
+## Feedback
+
+If you have any questions or feedback, do not hesitate to contact us via [GitHub Discussions](https://github.com/saleor/saleor/discussions).
+
+## License
+
+Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/saleor/saleor-platform/blob/main/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
+
+Some situations do call for extra code; we can cover exotic use cases or build you a custom e-commerce appliance.
+
+#### Crafted with ❤️ by [Saleor Commerce](https://saleor.io/)
+
+hello@saleor.io
