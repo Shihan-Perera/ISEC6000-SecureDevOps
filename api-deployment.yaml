@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-api
+  labels:
+    app: saleor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saleor-api
+  template:
+    metadata:
+      labels:
+        app: saleor-api
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/saleor/saleor:3.20
+        ports:
+        - containerPort: 8000
+        securityContext:
+          runAsUser: 1000      
+          runAsGroup: 3000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL             
+        resources:
+          limits:
+            cpu: "500m"        
+            memory: "512Mi"     
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: saleor-media
+          mountPath: /app/media
+      volumes:
+      - name: saleor-media
+        persistentVolumeClaim:
+          claimName: saleor-media-pvc

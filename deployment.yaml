@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: saleor-api
+  template:
+    metadata:
+      labels:
+        app: saleor-api
+    spec:
+      containers:
+      - name: saleor-api-container
+        image: ghcr.io/saleor/saleor:3.20
+        ports:
+        - containerPort: 8000
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: saleor-api
+  template:
+    metadata:
+      labels:
+        app: saleor-api
+    spec:
+      containers:
+      - name: saleor-api-container
+        image: ghcr.io/saleor/saleor:3.20
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: saleor-backend-config

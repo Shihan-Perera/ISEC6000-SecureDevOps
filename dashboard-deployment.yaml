@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saleor-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saleor-dashboard
+  template:
+    metadata:
+      labels:
+        app: saleor-dashboard
+    spec:
+      containers:
+      - name: saleor-dashboard-container
+        image: ghcr.io/saleor/saleor-dashboard:latest
+        ports:
+        - containerPort: 80

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: trivy-scan
+spec:
+  schedule: "0 0 * * *"  
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: trivy
+            image: aquasec/trivy:latest
+            args: ["image", "--severity", "HIGH,CRITICAL", "--exit-code", "1", "your-repo/your-image:latest"]
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "500m"
+              limits:
+                memory: "1Gi"
+                cpu: "1"
+          restartPolicy: OnFailure
